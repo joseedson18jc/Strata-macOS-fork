@@ -191,3 +191,9 @@ KV cache (`-ctk/-ctv q4_0` removed): Swift 1.5 IQ2_XS on this M1 Max, temperatur
 | batch 4096/2048 | 31.9 | 258 | 105.5 |
 
 Memory stayed at 20% free with the f16 cache at 64K context (only 12 of 48 layers keep a KV cache).
+
+`STRATA_KV_TYPE` selects the cache type (default `f16`). A later controlled check (a fresh server per type and
+three prompts neither server had seen, 131K context, the same weights) measured q8_0 at 34.6 and f16 at 34.5 tok/s,
+so `STRATA_KV_TYPE=q8_0` costs no speed and halves the cache. When benchmarking speculative decoding, repeat runs
+of one prompt overstate speed: the prompt cache changes the sampled text and ngram-mod drafts from earlier answers,
+which produced 52 and 127 tok/s readings on the same setup.

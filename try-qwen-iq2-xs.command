@@ -45,8 +45,12 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 echo "$$" > work/qwen-iq2-xs.pid
+# KV cache type: f16 (default) or q8_0. Both measured at the same decode speed on an M1 Max (see
+# docs/QWEN-IQ2-XS-TRIAL.md); q8_0 halves the cache, which matters at long contexts on a 64 GB Mac.
+STRATA_KV_TYPE="${STRATA_KV_TYPE:-f16}"
 "$STRATA_LLAMA_SERVER" -m "$STRATA_MODEL_DIR/$STRATA_MODEL-00001-of-00002.gguf" \
   -ngl 99 -np 1 -c "$STRATA_CONTEXT" -b 2048 -ub 1024 "${STRATA_SPEC[@]}" \
+  -ctk "$STRATA_KV_TYPE" -ctv "$STRATA_KV_TYPE" \
   --flash-attn on --lazy-mode on --jinja --host 127.0.0.1 --port 8096 \
   --alias qwen3.8-flash-next >logs/qwen-iq2-xs-metal.log 2>&1 &
 STRATA_NATIVE_PID=$!
